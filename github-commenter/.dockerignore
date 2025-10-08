@@ -1,0 +1,8 @@
+Ignore the virtual environment
+venv/
+
+Ignore Python's cache
+pycache/
+
+DO NOT include the .env file with secrets in the container image
+.env

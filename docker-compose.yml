@@ -1,0 +1,43 @@
+# Defines all the services (containers) that make up our application
+services:
+  # The RabbitMQ message broker service
+  rabbitmq:
+    image: "rabbitmq:3.13-management"
+    container_name: "intelli-review-rabbitmq"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  # Our Node.js webhook ingestor service
+  ingestor:
+    build: ./webhook-ingestor
+    container_name: "intelli-review-ingestor"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+    # Add a restart policy here as well for robustness
+    restart: on-failure
+
+  # Our Python AI analysis worker service
+  worker:
+    build: ./analysis-worker
+    container_name: "intelli-review-worker"
+    env_file:
+      - ./analysis-worker/.env
+    depends_on:
+      - rabbitmq
+    # This line tells Docker to restart the container if it exits with an error
+    restart: on-failure
+
+  # Our Python GitHub commenter service
+  commenter:
+    build: ./github-commenter
+    container_name: "intelli-review-commenter"
+    env_file:
+      - ./github-commenter/.env
+    depends_on:
+      - rabbitmq
+    # This line tells Docker to restart the container if it exits with an error
+    restart: on-failure
+
