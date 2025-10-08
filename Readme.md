@@ -1,78 +1,89 @@
-Intelli-Review 🤖✨
-An AI-powered code review assistant built with a full-stack, event-driven microservices architecture. This tool automatically reviews GitHub pull requests, providing intelligent feedback on potential bugs, performance issues, and best practices to accelerate the development lifecycle.
+````markdown
+# Intelli-Review 🤖✨
 
-Live Demo & Walkthrough
-(Pro-Tip: Use a free tool like ScreenToGif or Kap to record a short GIF of the entire workflow: enabling a repo on the dashboard, opening a PR, and seeing the AI comment appear automatically. A visual demo is incredibly powerful for recruiters.)
+An **AI-powered code review assistant** built with a full-stack, event-driven microservices architecture.  
+This tool automatically reviews GitHub pull requests, providing intelligent feedback on potential bugs, performance issues, and best practices to accelerate the development lifecycle.
 
-Core Features
-Automated AI Analysis: Leverages the OpenAI API (gpt-4o-mini) to provide intelligent, context-aware code reviews.
+---
 
-Full-Stack Dashboard: A modern Next.js and TypeScript frontend for users to log in with their GitHub account, view their repositories, and manage the service with a single click.
+## ⚙️ Core Features
 
-Event-Driven Backend: A fully containerized system of microservices (Node.js, Python) that communicate asynchronously via a RabbitMQ message queue for high reliability.
+- **Automated AI Analysis:** Leverages the OpenAI API (`gpt-4o-mini`) to provide intelligent, context-aware code reviews.  
+- **Full-Stack Dashboard:** Modern Next.js + TypeScript frontend for GitHub login, repo management, and enabling/disabling AI reviews.  
+- **Event-Driven Backend:** Microservices (Node.js & Python) communicating asynchronously via **RabbitMQ** for high reliability.  
+- **Persistent Storage:** PostgreSQL database with **Prisma ORM** to store user, repo, and configuration data.  
+- **Secure Authentication:** Built with **NextAuth.js** using GitHub OAuth2.  
+- **Containerized & Deployable:** Fully orchestrated via **Docker Compose**, enabling one-command deployment.  
 
-Persistent Storage: Uses a PostgreSQL database managed via Prisma ORM to store user data, repository configurations, and session information.
+---
 
-Secure Authentication: Built with NextAuth.js for a secure and robust GitHub OAuth2 authentication flow.
+## 🧠 Tech Stack & Architecture
 
-Containerized & Deployable: The entire backend is orchestrated with Docker Compose, allowing the entire system to be launched with a single command.
+| Layer | Technology |
+|-------|-------------|
+| **Frontend** | Next.js, React, TypeScript, Tailwind CSS |
+| **Backend Services** | Node.js (Ingestor), Python (AI Worker & Commenter) |
+| **Database** | PostgreSQL + Prisma ORM |
+| **Message Broker** | RabbitMQ |
+| **AI Engine** | OpenAI API |
+| **Auth** | NextAuth.js |
+| **Containerization** | Docker & Docker Compose |
 
-Tech Stack & Architecture
-Frontend: Next.js, React, TypeScript, Tailwind CSS
+---
 
-Backend Services: Node.js (Ingestor), Python (AI Worker & Commenter)
+## 🏗️ System Architecture
 
-Database: PostgreSQL with Prisma ORM
+*(Insert your architecture diagram here — this is a major highlight for recruiters!)*  
+It should demonstrate how the **Ingestor**, **AI Worker**, **Commenter**, and **Dashboard** interact via **RabbitMQ** and **PostgreSQL**.
 
-Message Broker: RabbitMQ
+---
 
-AI: OpenAI API
+## 🧰 Getting Started (Run Locally)
 
-Authentication: NextAuth.js
+Follow these steps to set up and run Intelli-Review on your local machine.
 
-Containerization: Docker & Docker Compose
+---
 
-System Architecture
-(This is a major highlight for recruiters. Take a screenshot of our architecture diagram and embed it here. It shows you can think at a system level, not just code.)
+### 1️⃣ Prerequisites
 
-Shutterstock
+- [Git](https://git-scm.com/)
+- [Node.js](https://nodejs.org/) (v18+)
+- [Python](https://www.python.org/) (v3.9+)
+- [Docker & Docker Compose](https://www.docker.com/)
 
-Getting Started & Running Locally
-Follow these steps to set up and run the project on your local machine.
+---
 
-1. Prerequisites
-Git
+### 2️⃣ Clone the Repository
 
-Node.js (v18+)
-
-Python (v3.9+)
-
-Docker & Docker Compose
-
-2. Clone the Repository
-Bash
-
+```bash
 git clone https://github.com/your-username/intelli-review.git
 cd intelli-review
-3. Configure Backend Environment
-You need to create .env files for the two Python services.
+````
 
-Create a file at analysis-worker/.env
+---
 
-Create another file at github-commenter/.env
+### 3️⃣ Configure Backend Environment
 
-Both files should contain the following variables:
+Create `.env` files for both Python services:
 
-Code snippet
+* `analysis-worker/.env`
+* `github-commenter/.env`
 
+Each should contain:
+
+```bash
 # Required for both analysis-worker/.env and github-commenter/.env
 OPENAI_API_KEY="sk-..."
 GITHUB_TOKEN="github_pat_..."
-4. Configure Frontend Environment
-Create a .env file at the root of the dashboard/ directory (dashboard/.env) with the following variables:
+```
 
-Code snippet
+---
 
+### 4️⃣ Configure Frontend Environment
+
+Create a `.env` file in the `dashboard/` directory (`dashboard/.env`):
+
+```bash
 # dashboard/.env
 
 # GitHub OAuth App Credentials
@@ -83,32 +94,86 @@ GITHUB_SECRET="your_github_client_secret"
 NEXTAUTH_URL="http://localhost:3001"
 NEXTAUTH_SECRET="generate_a_secret_key_using_openssl_rand_hex_32"
 
-# Database Connection (to the Docker container)
+# Database Connection
 DATABASE_URL="postgresql://myuser:mypassword@localhost:5432/mydatabase"
 
-# Public URL for the Webhook Ingestor (use ngrok for local development)
+# Webhook Ingestor (use ngrok for local testing)
 WEBHOOK_INGESTOR_URL="https://your-ngrok-url.ngrok-free.app"
-5. Launch the Application
-The entire system is orchestrated with Docker Compose.
+```
 
-Run the Backend: From the root intelli-review directory, launch the containerized backend services.
+---
 
-Bash
+### 5️⃣ Launch the Application
 
+The system is fully orchestrated with Docker Compose.
+
+**Run the Backend:**
+
+```bash
 docker-compose up --build
-Run the Frontend: In a new terminal window, navigate to the dashboard directory.
+```
 
-Bash
+**Run the Frontend:**
 
+```bash
 cd dashboard
 npm install
-npx prisma db push  # Apply the database schema
+npx prisma db push    # Apply Prisma schema
 npm run dev
-Expose Your Webhook: In a third terminal window, use ngrok to expose your local ingestor service to the internet.
+```
 
-Bash
+**Expose Your Webhook (for local testing):**
 
+```bash
 ngrok http 3000
-(Remember to update the WEBHOOK_INGESTOR_URL in your dashboard's .env file with the URL ngrok provides.)
+```
 
-The dashboard will be available at http://localhost:3001, and the backend is now live and ready to receive webhooks.
+> ⚠️ Update your `WEBHOOK_INGESTOR_URL` in `dashboard/.env` with the new ngrok URL.
+
+---
+
+### ✅ Access the App
+
+* **Dashboard:** [http://localhost:3001](http://localhost:3001)
+* **Backend Services:** Running via Docker
+* **Webhook Endpoint:** Exposed via ngrok
+
+---
+
+## 🌐 Deployment
+
+You can deploy the stack using any cloud provider that supports Docker (e.g., AWS ECS, Render, Railway, DigitalOcean).
+Simply set environment variables in the platform dashboard and run:
+
+```bash
+docker-compose up -d
+```
+
+---
+
+## 🧩 Future Enhancements
+
+* Multi-language AI code review (Java, C++, Go, etc.)
+* Slack & Discord PR notifications
+* Real-time dashboard analytics
+* AI-based code summarization
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+Feel free to fork the repo and submit a PR.
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Built with ❤️ using Next.js, Node.js, Python, and OpenAI**
+
+```
+```
