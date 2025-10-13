@@ -1,4 +1,4 @@
-````markdown
+
 # Intelli-Review 🤖✨
 
 An **AI-powered code review assistant** built with a full-stack, event-driven microservices architecture.  
