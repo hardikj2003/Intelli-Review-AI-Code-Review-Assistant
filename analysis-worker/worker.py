@@ -10,7 +10,10 @@ from github import Github, Auth
 # --- Configuration ---
 load_dotenv()
 # This hostname 'rabbitmq' is correct for Docker Compose
-RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/'
+RABBITMQ_URL = os.getenv("RABBITMQ_URL")
+if not RABBITMQ_URL:
+    raise ValueError("RABBITMQ_URL not found in environment variables")
+
 CONSUME_QUEUE = 'pr_analysis_jobs'
 PUBLISH_QUEUE = 'comment_jobs'
 
