@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 # --- Configuration ---
 load_dotenv()
 # This hostname 'rabbitmq' is correct for Docker Compose
-RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/'
+RABBITMQ_URL = os.getenv("RABBITMQ_URL")
+if not RABBITMQ_URL:
+    raise ValueError("RABBITMQ_URL not found in environment variables")
+
 QUEUE_NAME = 'comment_jobs'
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -17,7 +20,6 @@ if not GITHUB_TOKEN:
 
 auth = Auth.Token(GITHUB_TOKEN)
 github_client = Github(auth=auth)
-# --- End Configuration ---
 
 
 def post_comment_to_pr(repo_full_name, pr_number, comment_body):
