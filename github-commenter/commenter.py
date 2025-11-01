@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 # --- Configuration ---
 load_dotenv()
+# This hostname 'rabbitmq' is correct for Docker Compose
 RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/'
 QUEUE_NAME = 'comment_jobs'
 
@@ -58,6 +59,7 @@ def main():
     print("▶️ GitHub Commenter is starting...")
     connection = None
     attempts = 10
+    # --- This is the new retry logic ---
     for i in range(attempts):
         try:
             connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
@@ -70,6 +72,7 @@ def main():
     if not connection:
         print("🔴 Could not connect to RabbitMQ after several attempts. Exiting.")
         return
+    # --- End of retry logic ---
 
     channel = connection.channel()
     channel.queue_declare(queue=QUEUE_NAME, durable=True)

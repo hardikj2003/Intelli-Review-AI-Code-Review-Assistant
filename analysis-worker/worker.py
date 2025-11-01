@@ -9,6 +9,7 @@ from github import Github, Auth
 
 # --- Configuration ---
 load_dotenv()
+# This hostname 'rabbitmq' is correct for Docker Compose
 RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/'
 CONSUME_QUEUE = 'pr_analysis_jobs'
 PUBLISH_QUEUE = 'comment_jobs'
@@ -31,7 +32,8 @@ def get_pr_diff(repo_full_name, pr_number):
         print(f"🔎 Fetching diff for PR #{pr_number} in repo {repo_full_name}...")
         repo = github_client.get_repo(repo_full_name)
         pr = repo.get_pull(pr_number)
-        response = requests.get(pr.diff_url)
+        
+        response = requests.get(pr.diff_url, headers={'Authorization': f'token {GITHUB_TOKEN}'})
         response.raise_for_status()
         return response.text
     except Exception as e:
@@ -109,6 +111,7 @@ def main():
     print("▶️ AI Worker is starting...")
     connection = None
     attempts = 10
+    # --- This is the new retry logic ---
     for i in range(attempts):
         try:
             connection = pika.BlockingConnection(pika.URLParameters(RABBITMQ_URL))
@@ -121,6 +124,7 @@ def main():
     if not connection:
         print("🔴 Could not connect to RabbitMQ after several attempts. Exiting.")
         return
+    # --- End of retry logic ---
 
     channel = connection.channel()
     channel.queue_declare(queue=CONSUME_QUEUE, durable=True)
@@ -135,4 +139,3 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print('⏹️ Worker is shutting down.')
-
