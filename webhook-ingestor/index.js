@@ -3,7 +3,7 @@ const express = require("express");
 const amqp = require("amqplib");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 // Use the service name 'rabbitmq' as the hostname
 const RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/';
 const QUEUE_NAME = "pr_analysis_jobs";
