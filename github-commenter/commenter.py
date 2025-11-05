@@ -7,25 +7,18 @@ from dotenv import load_dotenv
 
 # --- Configuration ---
 load_dotenv()
-# This hostname 'rabbitmq' is correct for Docker Compose
-RABBITMQ_URL = os.getenv("RABBITMQ_URL")
-if not RABBITMQ_URL:
-    raise ValueError("RABBITMQ_URL not found in environment variables")
-
+# Get RabbitMQ URL from environment variable (fallback for local dev)
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 QUEUE_NAME = 'comment_jobs'
-
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-if not GITHUB_TOKEN:
-    raise ValueError("GITHUB_TOKEN not found in .env file")
-
-auth = Auth.Token(GITHUB_TOKEN)
-github_client = Github(auth=auth)
+# --- End Configuration ---
 
 
-def post_comment_to_pr(repo_full_name, pr_number, comment_body):
+def post_comment_to_pr(repo_full_name, pr_number, comment_body, github_token):
     """Posts a comment to a specific pull request on GitHub."""
     try:
         print(f"✍️ Posting comment to PR #{pr_number} in {repo_full_name}...")
+        auth = Auth.Token(github_token)
+        github_client = Github(auth=auth)
         repo = github_client.get_repo(repo_full_name)
         pr_as_issue = repo.get_issue(number=pr_number)
         formatted_comment = f"### 🤖 Intelli-Review Analysis\n\n---\n\n{comment_body}"
@@ -45,13 +38,24 @@ def process_message(channel, method, properties, body):
     repo_name = payload.get("repo_full_name")
     pr_number = payload.get("pr_number")
     feedback = payload.get("ai_feedback")
+    
+    # Extract user access token from metadata
+    meta = payload.get("_meta", {})
+    user_access_token = meta.get("userAccessToken")
+    userId = meta.get("userId")
 
     if not all([repo_name, pr_number, feedback]):
-        print("🔴 Invalid payload received. Discarding message.")
+        print("🔴 Invalid payload received. Missing required fields.")
         channel.basic_ack(delivery_tag=method.delivery_tag)
         return
 
-    post_comment_to_pr(repo_name, pr_number, feedback)
+    if not user_access_token:
+        print("🔴 Invalid payload received. Missing user access token.")
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+        return
+
+    print(f"👤 Posting comment for user {userId}")
+    post_comment_to_pr(repo_name, pr_number, feedback, user_access_token)
     
     channel.basic_ack(delivery_tag=method.delivery_tag)
 

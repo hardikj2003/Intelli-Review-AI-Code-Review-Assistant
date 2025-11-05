@@ -9,34 +9,27 @@ from github import Github, Auth
 
 # --- Configuration ---
 load_dotenv()
-# This hostname 'rabbitmq' is correct for Docker Compose
-RABBITMQ_URL = os.getenv("RABBITMQ_URL")
-if not RABBITMQ_URL:
-    raise ValueError("RABBITMQ_URL not found in environment variables")
-
+# Get RabbitMQ URL from environment variable (fallback for local dev)
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 CONSUME_QUEUE = 'pr_analysis_jobs'
 PUBLISH_QUEUE = 'comment_jobs'
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY: raise ValueError("OPENAI_API_KEY not found in .env file")
+if not OPENAI_API_KEY: raise ValueError("OPENAI_API_KEY not found in environment")
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
-
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-if not GITHUB_TOKEN: raise ValueError("GITHUB_TOKEN not found in .env file")
-
-auth = Auth.Token(GITHUB_TOKEN)
-github_client = Github(auth=auth)
 # --- End Configuration ---
 
 
-def get_pr_diff(repo_full_name, pr_number):
+def get_pr_diff(repo_full_name, pr_number, github_token):
     """Fetches the diff of a pull request using its diff_url."""
     try:
         print(f"🔎 Fetching diff for PR #{pr_number} in repo {repo_full_name}...")
+        auth = Auth.Token(github_token)
+        github_client = Github(auth=auth)
         repo = github_client.get_repo(repo_full_name)
         pr = repo.get_pull(pr_number)
         
-        response = requests.get(pr.diff_url, headers={'Authorization': f'token {GITHUB_TOKEN}'})
+        response = requests.get(pr.diff_url, headers={'Authorization': f'token {github_token}'})
         response.raise_for_status()
         return response.text
     except Exception as e:
@@ -72,15 +65,27 @@ def process_message(channel, method, properties, body):
     print("📥 Received a new analysis job.")
     payload = json.loads(body.decode('utf-8'))
     
+    # Extract metadata (user token and info)
+    meta = payload.get("_meta", {})
+    user_access_token = meta.get("userAccessToken")
+    userId = meta.get("userId")
+    
     repo_name = payload.get("repository", {}).get("full_name")
     pr_number = payload.get("number")
 
     if not repo_name or not pr_number:
-        print("🔴 Invalid payload.")
+        print("🔴 Invalid payload: missing repository or PR number.")
         channel.basic_ack(delivery_tag=method.delivery_tag)
         return
 
-    diff = get_pr_diff(repo_name, pr_number)
+    if not user_access_token:
+        print("🔴 Invalid payload: missing user access token.")
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+        return
+
+    print(f"👤 Processing job for user {userId}")
+
+    diff = get_pr_diff(repo_name, pr_number, user_access_token)
     
     if diff:
         ai_feedback = analyze_code_with_ai(diff)
@@ -91,7 +96,8 @@ def process_message(channel, method, properties, body):
         result_payload = {
             "repo_full_name": repo_name,
             "pr_number": pr_number,
-            "ai_feedback": ai_feedback
+            "ai_feedback": ai_feedback,
+            "_meta": meta  # Forward user metadata to commenter
         }
         
         try:
