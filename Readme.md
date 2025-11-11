@@ -177,3 +177,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 ```
 ```
+
+const RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/';
+const RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/';
+const RABBITMQ_URL = 'amqp://guest:guest@rabbitmq:5672/';
