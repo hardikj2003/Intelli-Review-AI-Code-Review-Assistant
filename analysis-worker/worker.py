@@ -2,7 +2,7 @@ import pika
 import json
 import os
 import requests
-import time # Import the time library
+import time # Import the time library 
 from openai import OpenAI
 from dotenv import load_dotenv
 from github import Github, Auth
@@ -10,7 +10,7 @@ from github import Github, Auth
 # --- Configuration ---
 load_dotenv()
 # Get RabbitMQ URL from environment variable (fallback for local dev)
-RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@intelli-review-rabbitmq:5672/")
 CONSUME_QUEUE = 'pr_analysis_jobs'
 PUBLISH_QUEUE = 'comment_jobs'
 

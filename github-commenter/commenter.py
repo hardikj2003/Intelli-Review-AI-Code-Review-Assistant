@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # --- Configuration ---
 load_dotenv()
 # Get RabbitMQ URL from environment variable (fallback for local dev)
-RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@intelli-review-rabbitmq:5672/")
 QUEUE_NAME = 'comment_jobs'
 # --- End Configuration ---
 

@@ -95,7 +95,7 @@ NEXTAUTH_URL="http://localhost:3001"
 NEXTAUTH_SECRET="generate_a_secret_key_using_openssl_rand_hex_32"
 
 # Database Connection
-DATABASE_URL="postgresql://myuser:mypassword@localhost:5432/mydatabase"
+DATABASE_URL="postgresql://myuser:mypassword@localhost:5434/mydatabase"
 
 # Webhook Ingestor (use ngrok for local testing)
 WEBHOOK_INGESTOR_URL="https://your-ngrok-url.ngrok-free.app"

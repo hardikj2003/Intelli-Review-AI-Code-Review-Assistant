@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@rabbitmq:5672/';
+const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@intelli-review-rabbitmq:5672/';
 const QUEUE_NAME = "pr_analysis_jobs";
 const DATABASE_URL = process.env.DATABASE_URL;
 

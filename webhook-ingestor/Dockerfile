@@ -1,27 +1,22 @@
-# Use an official Node.js runtime. 'alpine' is a very small version.
+# webhook-ingestor/Dockerfile
 FROM node:18-alpine
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json for dependency installation
-# This is also cached to speed up builds.
+# Copy dependency files first (cache friendly)
 COPY webhook-ingestor/package*.json ./
-
-# Install app dependencies (includes Prisma)
 RUN npm install
 
-# Copy webhook-ingestor source code
+# Copy application source
 COPY webhook-ingestor/ .
 
-# Copy Prisma schema from dashboard directory (needed for Prisma Client generation)
+# Copy Prisma schema from dashboard
 COPY dashboard/prisma ./prisma
 
-# Generate Prisma Client (requires @prisma/client which we installed above)
+# Generate Prisma Client (NO DB connection needed)
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
-# Make port 3000 available to the world outside this container
 EXPOSE 3000
 
-# Define the command to run the app
-CMD ["node", "index.js"]
+# Start the app
+CMD ["npm", "start"]

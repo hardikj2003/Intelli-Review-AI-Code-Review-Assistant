@@ -22,17 +22,20 @@ services:
       - "5672:5672"
       - "15672:15672"
     # This URL from your .env file is correct for Docker-to-Docker
-    # RABBITMQ_URL="amqp://guest:guest@rabbitmq:5672/"
+    # RABBITMQ_URL="amqp://guest:guest@intelli-review-rabbitmq:5672/"
 
   # Our Node.js webhook ingestor
   ingestor:
-    build: ./webhook-ingestor
+    build: 
+      context: .
+      dockerfile: webhook-ingestor/Dockerfile
     container_name: "intelli-review-ingestor"
     ports:
       - "3000:3000"
     environment:
       # Tell the ingestor how to find RabbitMQ
-      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      RABBITMQ_URL: "amqp://guest:guest@intelli-review-rabbitmq:5672/"
+      DATABASE_URL: "postgresql://postgres:hardik@postgres:5432/intelli-review"
     depends_on:
       - rabbitmq
     restart: on-failure
@@ -44,7 +47,7 @@ services:
     env_file:
       - ./analysis-worker/.env
     environment:
-      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      RABBITMQ_URL: "amqp://guest:guest@intelli-review-rabbitmq:5672/"
     depends_on:
       - rabbitmq
     restart: on-failure
@@ -56,7 +59,7 @@ services:
     env_file:
       - ./github-commenter/.env
     environment:
-      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      RABBITMQ_URL: "amqp://guest:guest@intelli-review-rabbitmq:5672/"
     depends_on:
       - rabbitmq
     restart: on-failure
